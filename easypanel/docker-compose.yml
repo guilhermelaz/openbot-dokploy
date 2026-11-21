@@ -1,0 +1,23 @@
+# OpenBot para EasyPanel (serviço Compose com fonte Git)
+# Gerador: https://guilhermelaz.github.io/openbot-dokploy/?painel=easypanel
+# Baseado no Docker oficial: https://github.com/nightly-labs/openbot/tree/main/docker
+# Personalize pela aba Environment do EasyPanel (com "Create .env file" ligado).
+
+services:
+  openbot:
+    image: ghcr.io/nightly-labs/openbot:${OPENBOT_TAG:-latest}
+    restart: unless-stopped
+    security_opt:
+      # perfil seccomp oficial do OpenBot (arquivo nesta mesma pasta)
+      - seccomp=./seccomp.json
+      - no-new-privileges:true
+    shm_size: ${OPENBOT_SHM:-1g}
+    mem_limit: ${OPENBOT_MEM_LIMIT:-0}
+    stop_grace_period: 60s
+    environment:
+      - TZ=${OPENBOT_TZ:-America/Sao_Paulo}
+    volumes:
+      - openbot-data:/data
+
+volumes:
+  openbot-data:

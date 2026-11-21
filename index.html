@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Gerador de template OpenBot para Dokploy · Guilherme Lazarotto</title>
-<meta name="description" content="Gere o template do OpenBot pro Dokploy em 1 minuto: importação em Base64, docker-compose, seccomp oficial e comandos de login. Tudo roda no seu navegador.">
+<title>Gerador de template OpenBot (Dokploy e EasyPanel) · Guilherme Lazarotto</title>
+<meta name="description" content="Instale o OpenBot na sua VPS pelo Dokploy ou pelo EasyPanel em poucos minutos: template pronto, perfil seccomp oficial e comandos de login. Tudo roda no seu navegador.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400..900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -43,6 +43,10 @@
   code, .mono { font-family: var(--mono); font-size: 0.92em; }
   code { background: #0A1430; border: 1px solid var(--line); border-radius: 6px; padding: 1px 6px; }
 
+  /* mostra só o conteúdo do painel escolhido */
+  body.p-dokploy [data-only="easypanel"],
+  body.p-easypanel [data-only="dokploy"] { display: none !important; }
+
   .wrap { max-width: 1240px; margin: 0 auto; padding: 32px 24px 64px; }
 
   header.top { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 28px; }
@@ -51,9 +55,25 @@
   .brand small { display: block; font-weight: 800; color: var(--brand-text); }
   .pill { display: inline-block; font-size: 13px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--brand-text); background: #0E2150; border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px; }
 
+  /* seletor de painel */
+  .panelsel {
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+    background: linear-gradient(135deg, var(--surface-raised) 0%, var(--surface) 100%);
+    border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 14px 16px; margin-bottom: 26px;
+  }
+  .panelsel .lbl { font-weight: 900; font-size: 16px; }
+  .panelsel .lbl small { display: block; font-weight: 600; color: var(--ink-muted); font-size: 13px; }
+  .seg-big { display: inline-flex; background: #081127; border: 1px solid var(--line); border-radius: 12px; padding: 4px; gap: 4px; }
+  .seg-big button {
+    font: inherit; font-weight: 900; font-size: 16px; color: var(--ink-muted); background: transparent;
+    border: 0; border-radius: 9px; padding: 10px 22px; cursor: pointer;
+  }
+  .seg-big button[aria-checked="true"] { background: var(--action); color: var(--ink); box-shadow: 0 0 24px #155DFC55; }
+  .seg-big button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
   .hero h1 { font-size: clamp(30px, 4.2vw, 48px); font-weight: 900; line-height: 1.1; margin: 14px 0 10px; }
   .hero h1 .hl { color: var(--brand-text); }
-  .hero p { color: var(--ink-muted); font-size: 18px; max-width: 760px; margin: 0; }
+  .hero p { color: var(--ink-muted); font-size: 18px; max-width: 780px; margin: 0; }
   .badges { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
   .badge { font-size: 14px; font-weight: 700; color: var(--ink-muted); border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; background: #0A1430; }
   .badge b { color: var(--success); }
@@ -94,8 +114,6 @@
   .status { display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 700; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: #081127; color: var(--ink-muted); }
   .status .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--warning); flex: none; }
   .status.ok .dot { background: var(--success); }
-  .status.fail { border-color: #7A2E2E; color: #FFC9C9; }
-  .status.fail .dot { background: var(--danger); }
 
   .tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
   .tab { font: inherit; font-weight: 800; font-size: 14px; color: var(--ink-muted); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 8px 14px; cursor: pointer; }
@@ -105,7 +123,7 @@
 
   .codehead { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; flex-wrap: wrap; }
   .codehead .fname { font-family: var(--mono); font-size: 14px; color: var(--accent); font-weight: 700; }
-  .codehead .meta { color: var(--ink-muted); font-size: 13px; }
+  .codehead .meta, .meta { color: var(--ink-muted); font-size: 13px; }
   pre, textarea.out {
     margin: 0; width: 100%; font-family: var(--mono); font-size: 13px; line-height: 1.55; color: #BFE9FF;
     background: #050B1E; border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px;
@@ -114,8 +132,10 @@
   textarea.out { resize: vertical; min-height: 150px; white-space: pre-wrap; word-break: break-all; }
   .cmd { position: relative; margin-bottom: 14px; }
   .cmd pre { white-space: pre-wrap; word-break: break-word; padding-right: 92px; }
-  .cmd .btn { position: absolute; top: 8px; right: 8px; }
-  .cmd p { margin: 0 0 6px; font-weight: 800; font-size: 14px; }
+  .cmd .btn { position: absolute; bottom: 7px; right: 8px; }
+  .cmd pre { min-height: 48px; }
+  .cmd > p { margin: 0 0 6px; font-weight: 800; font-size: 14px; }
+  .cmd .lab { display: inline-block; min-width: 170px; color: var(--ink-muted); font-weight: 700; }
 
   .btn {
     font: inherit; font-weight: 800; font-size: 14px; cursor: pointer; border-radius: 10px;
@@ -131,7 +151,6 @@
   .steps li { margin-bottom: 12px; }
   .steps li::marker { color: var(--accent); font-weight: 800; }
   .steps b { color: var(--ink); }
-  .steps .muted { color: var(--ink-muted); }
 
   .note { border-radius: 12px; padding: 12px 14px; font-size: 14px; margin-top: 14px; }
   .note.warn { background: #2A2108; border: 1px solid #6B5212; color: #FBE3A6; }
@@ -149,7 +168,7 @@
   footer a { font-weight: 800; }
 </style>
 </head>
-<body>
+<body class="p-dokploy">
 <div class="wrap">
 
   <header class="top">
@@ -157,14 +176,23 @@
     <span class="pill">Ferramenta gratuita</span>
   </header>
 
+  <div class="panelsel">
+    <div class="lbl">Qual painel você usa na VPS?<small>O template e o passo a passo mudam conforme a escolha.</small></div>
+    <div class="seg-big" role="radiogroup" aria-label="Painel da VPS">
+      <button type="button" role="radio" aria-checked="true" data-panel="dokploy">Dokploy</button>
+      <button type="button" role="radio" aria-checked="false" data-panel="easypanel">EasyPanel</button>
+    </div>
+  </div>
+
   <section class="hero">
-    <span class="pill">OpenBot + Dokploy</span>
-    <h1>Gerador de template do <span class="hl">OpenBot</span> pro Dokploy</h1>
-    <p>Preencha, copie o Base64 e importe no Dokploy. Sai o docker-compose, o perfil de segurança oficial (seccomp) e o comando de login prontos, com o seu OpenBot rodando 24h na VPS.</p>
+    <span class="pill">OpenBot + <span class="panelName">Dokploy</span></span>
+    <h1>Gerador de template do <span class="hl">OpenBot</span> pro <span class="panelName">Dokploy</span></h1>
+    <p data-only="dokploy">Preencha, copie o Base64 e importe no Dokploy. Sai o docker-compose, o perfil de segurança oficial (seccomp) e o comando de login prontos, com o seu OpenBot rodando 24h na VPS.</p>
+    <p data-only="easypanel">Preencha, copie os campos e as variáveis e cole no EasyPanel. O compose e o perfil de segurança oficial (seccomp) já ficam num repositório público, e você ainda leva o comando de login pronto, com o seu OpenBot rodando 24h na VPS.</p>
     <div class="badges">
       <span class="badge"><b>●</b> Nada é salvo: tudo roda no seu navegador</span>
       <span class="badge">Sem domínio e sem porta pra abrir</span>
-      <span class="badge">Perfil seccomp oficial, puxado do GitHub do OpenBot</span>
+      <span class="badge">Perfil seccomp oficial do OpenBot</span>
     </div>
   </section>
 
@@ -184,7 +212,7 @@
         </div>
 
         <div class="field" id="f-email">
-          <label for="email">E-mail da sua conta OpenBot <span class="muted" style="color:var(--ink-muted);font-weight:600">(opcional)</span></label>
+          <label for="email">E-mail da sua conta OpenBot <span style="color:var(--ink-muted);font-weight:600">(opcional)</span></label>
           <input type="email" id="email" placeholder="voce@email.com" autocomplete="off" spellcheck="false">
           <div class="hint">Se preencher, ele já entra no comando de login. Se não, o terminal pergunta na hora.</div>
           <div class="err">Esse e-mail não parece válido.</div>
@@ -227,7 +255,7 @@
               <option value="6g">6 GB</option>
               <option value="12g">12 GB</option>
             </select>
-            <div class="hint">Útil se o Dokploy roda outros apps na mesma VPS.</div>
+            <div class="hint">Útil se a VPS roda outros apps junto.</div>
           </div>
           <div class="field" id="f-tag">
             <label>Versão da imagem</label>
@@ -240,10 +268,12 @@
           </div>
         </div>
 
-        <div id="seccompStatus" class="status"><span class="dot"></span><span>Preparando o perfil seccomp oficial…</span></div>
+        <div id="seccompStatus" class="status" data-only="dokploy"><span class="dot"></span><span>Preparando o perfil seccomp oficial…</span></div>
+        <div class="status ok" data-only="easypanel"><span class="dot"></span><span>No EasyPanel, o seccomp oficial já vem do repositório junto com o compose.</span></div>
       </div>
 
-      <div class="card">
+      <!-- PASSO 2 · DOKPLOY -->
+      <div class="card" data-only="dokploy">
         <p class="eyebrow">Passo 2</p>
         <h2>Instale no Dokploy</h2>
         <p class="sub">Pré-requisito: VPS com Dokploy instalado (recomendo 8 GB de RAM) e conta no OpenBot (crie pelo app).</p>
@@ -254,7 +284,7 @@
           <li>Volte na aba <b>General</b> e clique em <b>Deploy</b>. Acompanhe em <b>Logs</b> até o container subir.</li>
           <li>Clique em <b>Open Terminal</b>, escolha o container do <code>openbot</code> e rode o <b>comando de login</b> (aba <b>Comandos</b>). Digite o código que chegar no seu e-mail.</li>
           <li>Rode <code>openbot status</code> pra conferir que está logado.</li>
-          <li>Abra o app do OpenBot (desktop, celular ou <code>openbot.run/app</code>) com a mesma conta e selecione <b id="sName">o seu servidor</b>.</li>
+          <li>Abra o app do OpenBot (desktop, celular ou <code>openbot.run/app</code>) com a mesma conta e selecione <b class="sName">o seu servidor</b>.</li>
           <li>Conecte os providers (Claude, Codex…) <b>de novo, agora no servidor</b>. O login do seu PC não vale lá.</li>
         </ol>
         <div class="note info"><b>Não adicione domínio.</b> O OpenBot não publica porta web: o app conecta pelo acesso remoto da própria conta, sem VPN. Deixe a aba <b>Domains</b> vazia.</div>
@@ -285,6 +315,43 @@
           </ol>
         </details>
       </div>
+
+      <!-- PASSO 2 · EASYPANEL -->
+      <div class="card" data-only="easypanel">
+        <p class="eyebrow">Passo 2</p>
+        <h2>Instale no EasyPanel</h2>
+        <p class="sub">Pré-requisito: VPS com EasyPanel instalado (recomendo 8 GB de RAM) e conta no OpenBot (crie pelo app).</p>
+        <ol class="steps">
+          <li>No EasyPanel, abra (ou crie) um projeto → <b>+ Service</b> → <b>Compose</b>. Dê o nome <code>openbot</code> e crie.</li>
+          <li>Na aba <b>Source</b>, escolha <b>Git</b> e preencha os 4 campos da aba <b>Source (Git)</b> aqui ao lado: <b>Repository URL</b>, <b>Branch</b>, <b>Build Path</b> e <b>Docker Compose File</b>. Clique em <b>Save</b>.</li>
+          <li>Na aba <b>Environment</b>, cole as variáveis da aba <b>Environment</b> daqui, ligue <b>Create .env file</b> e salve.</li>
+          <li>Clique em <b>Deploy</b> e acompanhe em <b>Deployments</b> até o container subir.</li>
+          <li>Abra o terminal da VPS (SSH ou o terminal do navegador da sua hospedagem) e rode o <b>comando de login</b> da aba <b>Comandos</b>. Digite o código que chegar no seu e-mail.</li>
+          <li>Rode o comando de <b>status</b> pra conferir que está logado.</li>
+          <li>Abra o app do OpenBot (desktop, celular ou <code>openbot.run/app</code>) com a mesma conta e selecione <b class="sName">o seu servidor</b>.</li>
+          <li>Conecte os providers (Claude, Codex…) <b>de novo, agora no servidor</b>. O login do seu PC não vale lá.</li>
+        </ol>
+        <div class="note info"><b>Não adicione domínio.</b> O OpenBot não publica porta web: o app conecta pelo acesso remoto da própria conta, sem VPN. Deixe a aba <b>Domains</b> vazia.</div>
+        <div class="note info">O compose e o seccomp ficam no repositório público <a href="https://github.com/guilhermelaz/openbot-dokploy/tree/main/easypanel" target="_blank" rel="noopener">guilhermelaz/openbot-dokploy</a>, na pasta <code>/easypanel</code>. A cada <b>Deploy</b>, o EasyPanel puxa a versão de lá. As suas escolhas ficam só nas variáveis do <b>Environment</b>.</div>
+
+        <details>
+          <summary>Backup e atualização</summary>
+          <ol class="steps">
+            <li><b>Backup:</b> o volume <code>openbot-data</code> guarda os logins dos providers, o banco e a chave de criptografia, então proteja como se fosse senha. Pare o serviço no EasyPanel, copie o volume (veja o comando na aba <b>Comandos</b>) e guarde fora da VPS. Copiar só os arquivos dos agentes não é backup completo.</li>
+            <li><b>Atualizar:</b> veja o comando na aba <b>Comandos</b>. Faça backup antes. A atualização pode migrar o banco, e voltar uma versão depois disso não é seguro.</li>
+          </ol>
+        </details>
+
+        <details>
+          <summary>Deu erro? Pegadinhas comuns</summary>
+          <ol class="steps">
+            <li><b>As variáveis não pegaram:</b> confira se <b>Create .env file</b> está ligado no Environment e dê <b>Deploy</b> de novo.</li>
+            <li><b>Servidor não aparece no app:</b> você rodou o login no container? Instalar não basta. Confira se o app usa o mesmo e-mail.</li>
+            <li><b>Erro de sandbox ou user namespace nos logs:</b> confira se o <b>Build Path</b> está como <code>/easypanel</code>, porque o <code>seccomp.json</code> precisa estar ao lado do compose. Alguns hosts restringem user namespaces ou aplicam regras extras de AppArmor. Veja o troubleshooting oficial no GitHub do OpenBot.</li>
+            <li><b>Travando por falta de memória:</b> veja a memória no comando de status, reduza tarefas simultâneas ou aumente a RAM da VPS.</li>
+          </ol>
+        </details>
+      </div>
     </div>
 
     <!-- DIREITA: saída -->
@@ -295,41 +362,72 @@
         <p class="sub">Atualiza sozinho conforme você preenche.</p>
 
         <div class="tabs" role="tablist">
-          <button class="tab" role="tab" aria-selected="true" data-tab="b64">Base64 (importar)</button>
-          <button class="tab" role="tab" aria-selected="false" data-tab="cmds">Comandos</button>
-          <button class="tab" role="tab" aria-selected="false" data-tab="compose">docker-compose.yml</button>
-          <button class="tab" role="tab" aria-selected="false" data-tab="seccomp">seccomp.json</button>
-          <button class="tab" role="tab" aria-selected="false" data-tab="toml">template.toml</button>
+          <button class="tab" role="tab" data-tab="b64" data-only="dokploy">Base64 (importar)</button>
+          <button class="tab" role="tab" data-tab="epsrc" data-only="easypanel">Source (Git)</button>
+          <button class="tab" role="tab" data-tab="epenv" data-only="easypanel">Environment</button>
+          <button class="tab" role="tab" data-tab="cmds">Comandos</button>
+          <button class="tab" role="tab" data-tab="compose">docker-compose.yml</button>
+          <button class="tab" role="tab" data-tab="seccomp">seccomp.json</button>
+          <button class="tab" role="tab" data-tab="toml" data-only="dokploy">template.toml</button>
         </div>
 
-        <div class="panel on" id="p-b64">
+        <!-- Dokploy: Base64 -->
+        <div class="panel" id="p-b64">
           <div class="codehead"><span class="fname">Configuration (Base64)</span><span class="meta" id="b64meta"></span></div>
           <textarea class="out" id="outB64" readonly rows="9" placeholder="Preencha o nome do servidor pra gerar…"></textarea>
           <div class="actions"><button class="btn primary" data-copy="outB64">Copiar Base64</button></div>
           <div class="note warn" id="b64warn" style="display:none"></div>
         </div>
 
+        <!-- EasyPanel: Source Git -->
+        <div class="panel" id="p-epsrc">
+          <p class="meta" style="margin:0 0 12px">Aba <b>Source</b> → <b>Git</b>. Copie cada campo:</p>
+          <div class="cmd"><p>Repository URL</p><pre id="epRepo"></pre><button class="btn" data-copy="epRepo">Copiar</button></div>
+          <div class="cmd"><p>Branch</p><pre id="epBranch"></pre><button class="btn" data-copy="epBranch">Copiar</button></div>
+          <div class="cmd"><p>Build Path</p><pre id="epPath"></pre><button class="btn" data-copy="epPath">Copiar</button></div>
+          <div class="cmd"><p>Docker Compose File</p><pre id="epFile"></pre><button class="btn" data-copy="epFile">Copiar</button></div>
+        </div>
+
+        <!-- EasyPanel: Environment -->
+        <div class="panel" id="p-epenv">
+          <div class="codehead"><span class="fname">Environment</span><span class="meta">cole na aba Environment e ligue “Create .env file”</span></div>
+          <pre id="outEnv"></pre>
+          <div class="actions"><button class="btn primary" data-copy="outEnv">Copiar variáveis</button></div>
+          <div class="note info"><code>OPENBOT_MEM_LIMIT=0</code> quer dizer sem limite de RAM.</div>
+        </div>
+
+        <!-- Comandos -->
         <div class="panel" id="p-cmds">
-          <div class="cmd"><p>1. Login (no Open Terminal do container)</p><pre id="cLogin"></pre><button class="btn" data-copy="cLogin">Copiar</button></div>
-          <div class="cmd"><p>2. Conferir</p><pre id="cStatus"></pre><button class="btn" data-copy="cStatus">Copiar</button></div>
-          <div class="cmd"><p>Alternativa: login via SSH na VPS</p><pre id="cSsh"></pre><button class="btn" data-copy="cSsh">Copiar</button></div>
-          <div class="cmd"><p>Atualizar o OpenBot (via SSH, faça backup antes)</p><pre id="cUpdate"></pre><button class="btn" data-copy="cUpdate">Copiar</button></div>
+          <div data-only="dokploy">
+            <div class="cmd"><p>1. Login (no Open Terminal do container)</p><pre id="cLogin"></pre><button class="btn" data-copy="cLogin">Copiar</button></div>
+            <div class="cmd"><p>2. Conferir</p><pre id="cStatus"></pre><button class="btn" data-copy="cStatus">Copiar</button></div>
+            <div class="cmd"><p>Alternativa: login via SSH na VPS</p><pre id="cSsh"></pre><button class="btn" data-copy="cSsh">Copiar</button></div>
+          </div>
+          <div data-only="easypanel">
+            <div class="cmd"><p>1. Login (no terminal da VPS, via SSH)</p><pre id="cSshLogin"></pre><button class="btn" data-copy="cSshLogin">Copiar</button></div>
+            <div class="cmd"><p>2. Conferir</p><pre id="cSshStatus"></pre><button class="btn" data-copy="cSshStatus">Copiar</button></div>
+            <div class="cmd"><p>Backup do volume (pare o serviço no EasyPanel antes)</p><pre id="cBackup"></pre><button class="btn" data-copy="cBackup">Copiar</button></div>
+          </div>
+          <div class="cmd"><p>Atualizar o OpenBot (faça backup antes)</p><pre id="cUpdate"></pre><button class="btn" data-copy="cUpdate">Copiar</button></div>
           <div class="note info" id="updNote"></div>
         </div>
 
+        <!-- compose -->
         <div class="panel" id="p-compose">
-          <div class="codehead"><span class="fname">docker-compose.yml</span></div>
+          <div class="codehead"><span class="fname">docker-compose.yml</span><span class="meta" data-only="easypanel">já está no repositório: não precisa colar</span></div>
           <pre id="outCompose"></pre>
           <div class="actions"><button class="btn primary" data-copy="outCompose">Copiar compose</button></div>
         </div>
 
+        <!-- seccomp -->
         <div class="panel" id="p-seccomp">
           <div class="codehead"><span class="fname">seccomp.json</span><span class="meta" id="secmeta"></span></div>
           <pre id="outSeccomp"></pre>
           <div class="actions"><button class="btn primary" data-copy="outSeccomp">Copiar seccomp</button></div>
-          <div class="note info">Arquivo do OpenBot, licença <a href="https://github.com/nightly-labs/openbot/blob/main/LICENSE" target="_blank" rel="noopener">PolyForm Noncommercial 1.0.0</a>.</div>
+          <div class="note info">Arquivo do OpenBot, licença <a href="https://github.com/nightly-labs/openbot/blob/main/LICENSE" target="_blank" rel="noopener">PolyForm Noncommercial 1.0.0</a>.<span data-only="easypanel"> No EasyPanel ele já vem do repositório.</span></div>
         </div>
 
+        <!-- Dokploy: toml -->
         <div class="panel" id="p-toml">
           <div class="codehead"><span class="fname">template.toml</span><span class="meta">o que vai dentro do Base64, junto com o compose</span></div>
           <pre id="outToml"></pre>
@@ -338,7 +436,8 @@
 
         <div class="actions" style="border-top:1px solid var(--line);padding-top:18px;margin-top:22px">
           <button class="btn primary" id="dlZip" disabled>Baixar tudo (.zip)</button>
-          <span class="meta" style="color:var(--ink-muted);font-size:13px;align-self:center">compose, seccomp, Base64, template.toml e LEIA-ME</span>
+          <span class="meta" style="align-self:center" data-only="dokploy">compose, seccomp, Base64, template.toml e LEIA-ME</span>
+          <span class="meta" style="align-self:center" data-only="easypanel">compose, seccomp, .env e LEIA-ME</span>
         </div>
       </div>
 
@@ -346,7 +445,7 @@
         <b>Antes de usar:</b> os agentes do OpenBot leem e alteram arquivos, rodam comandos e usam o navegador sem pedir confirmação a cada ação. Dê só tarefas em que você confia. Uso pessoal é gratuito; uso comercial (trabalho, clientes) exige licença do OpenBot.
       </div>
       <div class="note info">
-        Ferramenta não oficial, feita pela comunidade. O compose segue o <a href="https://github.com/nightly-labs/openbot/tree/main/docker" target="_blank" rel="noopener">Docker oficial do OpenBot</a>, adaptado pro Dokploy. Guia oficial de VPS: <a href="https://openbot.run/guides/install-openbot-vps" target="_blank" rel="noopener">openbot.run/guides/install-openbot-vps</a>.
+        Ferramenta não oficial, feita pela comunidade. O compose segue o <a href="https://github.com/nightly-labs/openbot/tree/main/docker" target="_blank" rel="noopener">Docker oficial do OpenBot</a>, adaptado pro Dokploy e pro EasyPanel. Guia oficial de VPS: <a href="https://openbot.run/guides/install-openbot-vps" target="_blank" rel="noopener">openbot.run/guides/install-openbot-vps</a>.
       </div>
     </div>
   </div>
@@ -366,6 +465,14 @@
 
   var SECCOMP_URL = "https://raw.githubusercontent.com/nightly-labs/openbot/main/docker/seccomp.json";
   var IMAGE = "ghcr.io/nightly-labs/openbot";
+  var EP = {
+    repo: "https://github.com/guilhermelaz/openbot-dokploy",
+    branch: "main",
+    path: "/easypanel",
+    file: "docker-compose.yml"
+  };
+  var PANELS = { dokploy: "Dokploy", easypanel: "EasyPanel" };
+  var panel = "dokploy";
   var seccomp = null; // texto do seccomp oficial, quando carregar
   // Cópia embutida do seccomp oficial (github.com/nightly-labs/openbot/docker/seccomp.json, 19/11/2026),
   // usada quando o navegador não consegue buscar a versão atual no GitHub.
@@ -373,6 +480,7 @@
   var SECCOMP_EMBEDDED = "{\n  \"defaultAction\": \"SCMP_ACT_ERRNO\",\n  \"defaultErrnoRet\": 1,\n  \"archMap\": [\n    {\n      \"architecture\": \"SCMP_ARCH_X86_64\",\n      \"subArchitectures\": [\"SCMP_ARCH_X86\", \"SCMP_ARCH_X32\"]\n    },\n    {\n      \"architecture\": \"SCMP_ARCH_AARCH64\",\n      \"subArchitectures\": [\"SCMP_ARCH_ARM\"]\n    },\n    {\n      \"architecture\": \"SCMP_ARCH_MIPS64\",\n      \"subArchitectures\": [\"SCMP_ARCH_MIPS\", \"SCMP_ARCH_MIPS64N32\"]\n    },\n    {\n      \"architecture\": \"SCMP_ARCH_MIPS64N32\",\n      \"subArchitectures\": [\"SCMP_ARCH_MIPS\", \"SCMP_ARCH_MIPS64\"]\n    },\n    {\n      \"architecture\": \"SCMP_ARCH_MIPSEL64\",\n      \"subArchitectures\": [\"SCMP_ARCH_MIPSEL\", \"SCMP_ARCH_MIPSEL64N32\"]\n    },\n    {\n      \"architecture\": \"SCMP_ARCH_MIPSEL64N32\",\n      \"subArchitectures\": [\"SCMP_ARCH_MIPSEL\", \"SCMP_ARCH_MIPSEL64\"]\n    },\n    {\n      \"architecture\": \"SCMP_ARCH_S390X\",\n      \"subArchitectures\": [\"SCMP_ARCH_S390\"]\n    },\n    {\n      \"architecture\": \"SCMP_ARCH_RISCV64\",\n      \"subArchitectures\": null\n    },\n    {\n      \"architecture\": \"SCMP_ARCH_LOONGARCH64\",\n      \"subArchitectures\": null\n    }\n  ],\n  \"syscalls\": [\n    {\n      \"names\": [\n        \"accept\",\n        \"accept4\",\n        \"access\",\n        \"adjtimex\",\n        \"alarm\",\n        \"bind\",\n        \"brk\",\n        \"cachestat\",\n        \"capget\",\n        \"capset\",\n        \"chdir\",\n        \"chmod\",\n        \"chown\",\n        \"chown32\",\n        \"clock_adjtime\",\n        \"clock_adjtime64\",\n        \"clock_getres\",\n        \"clock_getres_time64\",\n        \"clock_gettime\",\n        \"clock_gettime64\",\n        \"clock_nanosleep\",\n        \"clock_nanosleep_time64\",\n        \"close\",\n        \"close_range\",\n        \"connect\",\n        \"copy_file_range\",\n        \"creat\",\n        \"dup\",\n        \"dup2\",\n        \"dup3\",\n        \"epoll_create\",\n        \"epoll_create1\",\n        \"epoll_ctl\",\n        \"epoll_ctl_old\",\n        \"epoll_pwait\",\n        \"epoll_pwait2\",\n        \"epoll_wait\",\n        \"epoll_wait_old\",\n        \"eventfd\",\n        \"eventfd2\",\n        \"execve\",\n        \"execveat\",\n        \"exit\",\n        \"exit_group\",\n        \"faccessat\",\n        \"faccessat2\",\n        \"fadvise64\",\n        \"fadvise64_64\",\n        \"fallocate\",\n        \"fanotify_mark\",\n        \"fchdir\",\n        \"fchmod\",\n        \"fchmodat\",\n        \"fchmodat2\",\n        \"fchown\",\n        \"fchown32\",\n        \"fchownat\",\n        \"fcntl\",\n        \"fcntl64\",\n        \"fdatasync\",\n        \"fgetxattr\",\n        \"flistxattr\",\n        \"flock\",\n        \"fork\",\n        \"fremovexattr\",\n        \"fsetxattr\",\n        \"fstat\",\n        \"fstat64\",\n        \"fstatat64\",\n        \"fstatfs\",\n        \"fstatfs64\",\n        \"fsync\",\n        \"ftruncate\",\n        \"ftruncate64\",\n        \"futex\",\n        \"futex_requeue\",\n        \"futex_time64\",\n        \"futex_wait\",\n        \"futex_waitv\",\n        \"futex_wake\",\n        \"futimesat\",\n        \"getcpu\",\n        \"getcwd\",\n        \"getdents\",\n        \"getdents64\",\n        \"getegid\",\n        \"getegid32\",\n        \"geteuid\",\n        \"geteuid32\",\n        \"getgid\",\n        \"getgid32\",\n        \"getgroups\",\n        \"getgroups32\",\n        \"getitimer\",\n        \"getpeername\",\n        \"getpgid\",\n        \"getpgrp\",\n        \"getpid\",\n        \"getppid\",\n        \"getpriority\",\n        \"getrandom\",\n        \"getresgid\",\n        \"getresgid32\",\n        \"getresuid\",\n        \"getresuid32\",\n        \"getrlimit\",\n        \"get_robust_list\",\n        \"getrusage\",\n        \"getsid\",\n        \"getsockname\",\n        \"getsockopt\",\n        \"get_thread_area\",\n        \"gettid\",\n        \"gettimeofday\",\n        \"getuid\",\n        \"getuid32\",\n        \"getxattr\",\n        \"getxattrat\",\n        \"inotify_add_watch\",\n        \"inotify_init\",\n        \"inotify_init1\",\n        \"inotify_rm_watch\",\n        \"io_cancel\",\n        \"ioctl\",\n        \"io_destroy\",\n        \"io_getevents\",\n        \"io_pgetevents\",\n        \"io_pgetevents_time64\",\n        \"ioprio_get\",\n        \"ioprio_set\",\n        \"io_setup\",\n        \"io_submit\",\n        \"ipc\",\n        \"kill\",\n        \"landlock_add_rule\",\n        \"landlock_create_ruleset\",\n        \"landlock_restrict_self\",\n        \"lchown\",\n        \"lchown32\",\n        \"lgetxattr\",\n        \"link\",\n        \"linkat\",\n        \"listen\",\n        \"listmount\",\n        \"listxattr\",\n        \"listxattrat\",\n        \"llistxattr\",\n        \"_llseek\",\n        \"lremovexattr\",\n        \"lseek\",\n        \"lsetxattr\",\n        \"lstat\",\n        \"lstat64\",\n        \"madvise\",\n        \"map_shadow_stack\",\n        \"membarrier\",\n        \"memfd_create\",\n        \"memfd_secret\",\n        \"mincore\",\n        \"mkdir\",\n        \"mkdirat\",\n        \"mknod\",\n        \"mknodat\",\n        \"mlock\",\n        \"mlock2\",\n        \"mlockall\",\n        \"mmap\",\n        \"mmap2\",\n        \"mprotect\",\n        \"mq_getsetattr\",\n        \"mq_notify\",\n        \"mq_open\",\n        \"mq_timedreceive\",\n        \"mq_timedreceive_time64\",\n        \"mq_timedsend\",\n        \"mq_timedsend_time64\",\n        \"mq_unlink\",\n        \"mremap\",\n        \"mseal\",\n        \"msgctl\",\n        \"msgget\",\n        \"msgrcv\",\n        \"msgsnd\",\n        \"msync\",\n        \"munlock\",\n        \"munlockall\",\n        \"munmap\",\n        \"name_to_handle_at\",\n        \"nanosleep\",\n        \"newfstatat\",\n        \"_newselect\",\n        \"open\",\n        \"openat\",\n        \"openat2\",\n        \"pause\",\n        \"pidfd_open\",\n        \"pidfd_send_signal\",\n        \"pipe\",\n        \"pipe2\",\n        \"pkey_alloc\",\n        \"pkey_free\",\n        \"pkey_mprotect\",\n        \"poll\",\n        \"ppoll\",\n        \"ppoll_time64\",\n        \"prctl\",\n        \"pread64\",\n        \"preadv\",\n        \"preadv2\",\n        \"prlimit64\",\n        \"process_mrelease\",\n        \"pselect6\",\n        \"pselect6_time64\",\n        \"pwrite64\",\n        \"pwritev\",\n        \"pwritev2\",\n        \"read\",\n        \"readahead\",\n        \"readlink\",\n        \"readlinkat\",\n        \"readv\",\n        \"recv\",\n        \"recvfrom\",\n        \"recvmmsg\",\n        \"recvmmsg_time64\",\n        \"recvmsg\",\n        \"remap_file_pages\",\n        \"removexattr\",\n        \"removexattrat\",\n        \"rename\",\n        \"renameat\",\n        \"renameat2\",\n        \"restart_syscall\",\n        \"riscv_hwprobe\",\n        \"rmdir\",\n        \"rseq\",\n        \"rt_sigaction\",\n        \"rt_sigpending\",\n        \"rt_sigprocmask\",\n        \"rt_sigqueueinfo\",\n        \"rt_sigreturn\",\n        \"rt_sigsuspend\",\n        \"rt_sigtimedwait\",\n        \"rt_sigtimedwait_time64\",\n        \"rt_tgsigqueueinfo\",\n        \"sched_getaffinity\",\n        \"sched_getattr\",\n        \"sched_getparam\",\n        \"sched_get_priority_max\",\n        \"sched_get_priority_min\",\n        \"sched_getscheduler\",\n        \"sched_rr_get_interval\",\n        \"sched_rr_get_interval_time64\",\n        \"sched_setaffinity\",\n        \"sched_setattr\",\n        \"sched_setparam\",\n        \"sched_setscheduler\",\n        \"sched_yield\",\n        \"seccomp\",\n        \"select\",\n        \"semctl\",\n        \"semget\",\n        \"semop\",\n        \"semtimedop\",\n        \"semtimedop_time64\",\n        \"send\",\n        \"sendfile\",\n        \"sendfile64\",\n        \"sendmmsg\",\n        \"sendmsg\",\n        \"sendto\",\n        \"setfsgid\",\n        \"setfsgid32\",\n        \"setfsuid\",\n        \"setfsuid32\",\n        \"setgid\",\n        \"setgid32\",\n        \"setgroups\",\n        \"setgroups32\",\n        \"setitimer\",\n        \"setpgid\",\n        \"setpriority\",\n        \"setregid\",\n        \"setregid32\",\n        \"setresgid\",\n        \"setresgid32\",\n        \"setresuid\",\n        \"setresuid32\",\n        \"setreuid\",\n        \"setreuid32\",\n        \"setrlimit\",\n        \"set_robust_list\",\n        \"setsid\",\n        \"setsockopt\",\n        \"set_thread_area\",\n        \"set_tid_address\",\n        \"setuid\",\n        \"setuid32\",\n        \"setxattr\",\n        \"setxattrat\",\n        \"shmat\",\n        \"shmctl\",\n        \"shmdt\",\n        \"shmget\",\n        \"shutdown\",\n        \"sigaltstack\",\n        \"signalfd\",\n        \"signalfd4\",\n        \"sigprocmask\",\n        \"sigreturn\",\n        \"socketcall\",\n        \"socketpair\",\n        \"splice\",\n        \"stat\",\n        \"stat64\",\n        \"statfs\",\n        \"statfs64\",\n        \"statmount\",\n        \"statx\",\n        \"symlink\",\n        \"symlinkat\",\n        \"sync\",\n        \"sync_file_range\",\n        \"syncfs\",\n        \"sysinfo\",\n        \"tee\",\n        \"tgkill\",\n        \"time\",\n        \"timer_create\",\n        \"timer_delete\",\n        \"timer_getoverrun\",\n        \"timer_gettime\",\n        \"timer_gettime64\",\n        \"timer_settime\",\n        \"timer_settime64\",\n        \"timerfd_create\",\n        \"timerfd_gettime\",\n        \"timerfd_gettime64\",\n        \"timerfd_settime\",\n        \"timerfd_settime64\",\n        \"times\",\n        \"tkill\",\n        \"truncate\",\n        \"truncate64\",\n        \"ugetrlimit\",\n        \"umask\",\n        \"uname\",\n        \"unlink\",\n        \"unlinkat\",\n        \"uretprobe\",\n        \"utime\",\n        \"utimensat\",\n        \"utimensat_time64\",\n        \"utimes\",\n        \"vfork\",\n        \"vmsplice\",\n        \"wait4\",\n        \"waitid\",\n        \"waitpid\",\n        \"write\",\n        \"writev\"\n      ],\n      \"action\": \"SCMP_ACT_ALLOW\"\n    },\n    {\n      \"names\": [\"process_vm_readv\", \"process_vm_writev\", \"ptrace\"],\n      \"action\": \"SCMP_ACT_ALLOW\",\n      \"includes\": {\n        \"minKernel\": \"4.8\"\n      }\n    },\n    {\n      \"names\": [\"socket\"],\n      \"action\": \"SCMP_ACT_ALLOW\",\n      \"args\": [\n        {\n          \"index\": 0,\n          \"value\": 3,\n          \"op\": \"SCMP_CMP_LT\"\n        }\n      ]\n    },\n    {\n      \"names\": [\"socket\"],\n      \"action\": \"SCMP_ACT_ALLOW\",\n      \"args\": [\n        {\n          \"index\": 0,\n          \"value\": 7,\n          \"op\": \"SCMP_CMP_EQ\"\n        }\n      ]\n    },\n    {\n      \"names\": [\"socket\"],\n      \"action\": \"SCMP_ACT_ALLOW\",\n      \"args\": [\n        {\n          \"index\": 0,\n          \"value\": 8,\n          \"op\": \"SCMP_CMP_EQ\"\n        }\n      ]\n    },\n    {\n      \"names\": [\"socket\"],\n      \"action\": \"SCMP_ACT_ALLOW\",\n      \"args\": [\n        {\n          \"index\": 0,\n          \"value\": 9,\n          \"op\": \"SCMP_CMP_EQ\"\n        }\n      ]\n    },\n    {\n      \"names\": [\"socket\"],\n      \"action\": \"SCMP_ACT_ALLOW\",\n      \"args\": [\n        {\n          \"index\": 0,\n          \"value\": 10,\n          \"op\": \"SCMP_CMP_EQ\"\n        }\n      ]\n    },\n    {\n      \"names\": [\"socket\"],\n      \"action\": \"SCMP_ACT_ALLOW\",\n      \"args\": [\n        {\n          \"index\": 0,\n          \"value\": 13,\n          \"op\": \"SCMP_CMP_EQ\"\n        }\n      ]\n    },\n    {\n      \"names\": [\"socket\"],\n      \"action\": \"SCMP_ACT_ALLOW\",\n      \"args\": [\n        {\n          \"index\": 0,\n          \"value\": 14,\n          \"op\": \"SCMP_CMP_EQ\"\n        }\n      ]\n    },\n    {\n      \"names\": [\"socket\"],\n      \"action\": \"SCMP_ACT_ALLOW\",\n      \"args\": [\n        {\n          \"index\": 0,\n          \"value\": 15,\n          \"op\": \"SCMP_CMP_EQ\"\n        }\n      ]\n    },\n    {\n      \"names\": [\"socket\"],\n      \"action\": \"SCMP_ACT_ALLOW\",\n      \"args\": [\n        {\n          \"index\": 0,\n          \"value\": 16,\n          \"op\": \"SCMP_CMP_EQ\"\n        }\n      ]\n    },\n    {\n      \"names\": [\"socket\"],\n      \"action\": \"SCMP_ACT_ALLOW\",\n      \"args\": [\n        {\n          \"index\": 0,\n          \"value\": 17,\n          \"op\": \"SCMP_CMP_EQ\"\n        }\n      ]\n    },\n    {\n      \"names\": [\"socket\"],\n      \"action\": \"SCMP_ACT_ALLOW\",\n      \"args\": [\n        {\n          \"index\": 0,\n          \"value\": 18,\n          \"op\": \"SCMP_CMP_EQ\"\n        }\n      ]\n    },\n    {\n      \"names\": [\"socket\"],\n      \"action\": \"SCMP_ACT_ALLOW\",\n      \"args\": [\n        {\n          \"index\": 0,\n          \"value\": 21,\n          \"op\": \"SCMP_CMP_EQ\"\n        }\n      ]\n    },\n    {\n      \"names\": [\"socket\"],\n      \"action\": \"SCMP_ACT_ALLOW\",\n      \"args\": [\n        {\n          \"index\": 0,\n          \"value\": 22,\n          \"op\": \"SCMP_CMP_EQ\"\n        }\n      ]\n    },\n    {\n      \"names\": [\"socket\"],\n      \"action\": \"SCMP_ACT_ALLOW\",\n      \"args\": [\n        {\n          \"index\": 0,\n          \"value\": 24,\n          \"op\": \"SCMP_CMP_EQ\"\n        }\n      ]\n    },\n    {\n      \"names\": [\"socket\"],\n      \"action\": \"SCMP_ACT_ALLOW\",\n      \"args\": [\n        {\n          \"index\": 0,\n          \"value\": 26,\n          \"op\": \"SCMP_CMP_EQ\"\n        }\n      ]\n    },\n    {\n      \"names\": [\"socket\"],\n      \"action\": \"SCMP_ACT_ALLOW\",\n      \"args\": [\n        {\n          \"index\": 0,\n          \"value\": 27,\n          \"op\": \"SCMP_CMP_EQ\"\n        }\n      ]\n    },\n    {\n      \"names\": [\"socket\"],\n      \"action\": \"SCMP_ACT_ALLOW\",\n      \"args\": [\n        {\n          \"index\": 0,\n          \"value\": 28,\n          \"op\": \"SCMP_CMP_EQ\"\n        }\n      ]\n    },\n    {\n      \"names\": [\"socket\"],\n      \"action\": \"SCMP_ACT_ALLOW\",\n      \"args\": [\n        {\n          \"index\": 0,\n          \"value\": 29,\n          \"op\": \"SCMP_CMP_EQ\"\n        }\n      ]\n    },\n    {\n      \"names\": [\"socket\"],\n      \"action\": \"SCMP_ACT_ALLOW\",\n      \"args\": [\n        {\n          \"index\": 0,\n          \"value\": 30,\n          \"op\": \"SCMP_CMP_EQ\"\n        }\n      ]\n    },\n    {\n      \"names\": [\"socket\"],\n      \"action\": \"SCMP_ACT_ALLOW\",\n      \"args\": [\n        {\n          \"index\": 0,\n          \"value\": 31,\n          \"op\": \"SCMP_CMP_EQ\"\n        }\n      ]\n    },\n    {\n      \"names\": [\"socket\"],\n      \"action\": \"SCMP_ACT_ALLOW\",\n      \"args\": [\n        {\n          \"index\": 0,\n          \"value\": 32,\n          \"op\": \"SCMP_CMP_EQ\"\n        }\n      ]\n    },\n    {\n      \"names\": [\"socket\"],\n      \"action\": \"SCMP_ACT_ALLOW\",\n      \"args\": [\n        {\n          \"index\": 0,\n          \"value\": 33,\n          \"op\": \"SCMP_CMP_EQ\"\n        }\n      ]\n    },\n    {\n      \"names\": [\"socket\"],\n      \"action\": \"SCMP_ACT_ALLOW\",\n      \"args\": [\n        {\n          \"index\": 0,\n          \"value\": 35,\n          \"op\": \"SCMP_CMP_EQ\"\n        }\n      ]\n    },\n    {\n      \"names\": [\"socket\"],\n      \"action\": \"SCMP_ACT_ALLOW\",\n      \"args\": [\n        {\n          \"index\": 0,\n          \"value\": 36,\n          \"op\": \"SCMP_CMP_EQ\"\n        }\n      ]\n    },\n    {\n      \"names\": [\"socket\"],\n      \"action\": \"SCMP_ACT_ALLOW\",\n      \"args\": [\n        {\n          \"index\": 0,\n          \"value\": 39,\n          \"op\": \"SCMP_CMP_EQ\"\n        }\n      ]\n    },\n    {\n      \"names\": [\"socket\"],\n      \"action\": \"SCMP_ACT_ALLOW\",\n      \"args\": [\n        {\n          \"index\": 0,\n          \"value\": 41,\n          \"op\": \"SCMP_CMP_EQ\"\n        }\n      ]\n    },\n    {\n      \"names\": [\"socket\"],\n      \"action\": \"SCMP_ACT_ALLOW\",\n      \"args\": [\n        {\n          \"index\": 0,\n          \"value\": 42,\n          \"op\": \"SCMP_CMP_EQ\"\n        }\n      ]\n    },\n    {\n      \"names\": [\"socket\"],\n      \"action\": \"SCMP_ACT_ALLOW\",\n      \"args\": [\n        {\n          \"index\": 0,\n          \"value\": 43,\n          \"op\": \"SCMP_CMP_EQ\"\n        }\n      ]\n    },\n    {\n      \"names\": [\"socket\"],\n      \"action\": \"SCMP_ACT_ALLOW\",\n      \"args\": [\n        {\n          \"index\": 0,\n          \"value\": 44,\n          \"op\": \"SCMP_CMP_EQ\"\n        }\n      ]\n    },\n    {\n      \"names\": [\"socket\"],\n      \"action\": \"SCMP_ACT_ALLOW\",\n      \"args\": [\n        {\n          \"index\": 0,\n          \"value\": 45,\n          \"op\": \"SCMP_CMP_EQ\"\n        }\n      ]\n    },\n    {\n      \"names\": [\"personality\"],\n      \"action\": \"SCMP_ACT_ALLOW\",\n      \"args\": [\n        {\n          \"index\": 0,\n          \"value\": 0,\n          \"op\": \"SCMP_CMP_EQ\"\n        }\n      ]\n    },\n    {\n      \"names\": [\"personality\"],\n      \"action\": \"SCMP_ACT_ALLOW\",\n      \"args\": [\n        {\n          \"index\": 0,\n          \"value\": 8,\n          \"op\": \"SCMP_CMP_EQ\"\n        }\n      ]\n    },\n    {\n      \"names\": [\"personality\"],\n      \"action\": \"SCMP_ACT_ALLOW\",\n      \"args\": [\n        {\n          \"index\": 0,\n          \"value\": 131072,\n          \"op\": \"SCMP_CMP_EQ\"\n        }\n      ]\n    },\n    {\n      \"names\": [\"personality\"],\n      \"action\": \"SCMP_ACT_ALLOW\",\n      \"args\": [\n        {\n          \"index\": 0,\n          \"value\": 131080,\n          \"op\": \"SCMP_CMP_EQ\"\n        }\n      ]\n    },\n    {\n      \"names\": [\"personality\"],\n      \"action\": \"SCMP_ACT_ALLOW\",\n      \"args\": [\n        {\n          \"index\": 0,\n          \"value\": 4294967295,\n          \"op\": \"SCMP_CMP_EQ\"\n        }\n      ]\n    },\n    {\n      \"names\": [\"sync_file_range2\", \"swapcontext\"],\n      \"action\": \"SCMP_ACT_ALLOW\",\n      \"includes\": {\n        \"arches\": [\"ppc64le\"]\n      }\n    },\n    {\n      \"names\": [\"arm_fadvise64_64\", \"arm_sync_file_range\", \"sync_file_range2\", \"breakpoint\", \"cacheflush\", \"set_tls\"],\n      \"action\": \"SCMP_ACT_ALLOW\",\n      \"includes\": {\n        \"arches\": [\"arm\", \"arm64\"]\n      }\n    },\n    {\n      \"names\": [\"arch_prctl\"],\n      \"action\": \"SCMP_ACT_ALLOW\",\n      \"includes\": {\n        \"arches\": [\"amd64\", \"x32\"]\n      }\n    },\n    {\n      \"names\": [\"modify_ldt\"],\n      \"action\": \"SCMP_ACT_ALLOW\",\n      \"includes\": {\n        \"arches\": [\"amd64\", \"x32\", \"x86\"]\n      }\n    },\n    {\n      \"names\": [\"s390_pci_mmio_read\", \"s390_pci_mmio_write\", \"s390_runtime_instr\"],\n      \"action\": \"SCMP_ACT_ALLOW\",\n      \"includes\": {\n        \"arches\": [\"s390\", \"s390x\"]\n      }\n    },\n    {\n      \"names\": [\"riscv_flush_icache\"],\n      \"action\": \"SCMP_ACT_ALLOW\",\n      \"includes\": {\n        \"arches\": [\"riscv64\"]\n      }\n    },\n    {\n      \"names\": [\"open_by_handle_at\"],\n      \"action\": \"SCMP_ACT_ALLOW\",\n      \"includes\": {\n        \"caps\": [\"CAP_DAC_READ_SEARCH\"]\n      }\n    },\n    {\n      \"names\": [\n        \"bpf\",\n        \"clone\",\n        \"clone3\",\n        \"fanotify_init\",\n        \"fsconfig\",\n        \"fsmount\",\n        \"fsopen\",\n        \"fspick\",\n        \"lookup_dcookie\",\n        \"lsm_get_self_attr\",\n        \"lsm_list_modules\",\n        \"lsm_set_self_attr\",\n        \"mount\",\n        \"mount_setattr\",\n        \"move_mount\",\n        \"open_tree\",\n        \"perf_event_open\",\n        \"quotactl\",\n        \"quotactl_fd\",\n        \"setdomainname\",\n        \"sethostname\",\n        \"setns\",\n        \"syslog\",\n        \"umount\",\n        \"umount2\",\n        \"unshare\"\n      ],\n      \"action\": \"SCMP_ACT_ALLOW\",\n      \"includes\": {\n        \"caps\": [\"CAP_SYS_ADMIN\"]\n      }\n    },\n    {\n      \"names\": [\"clone\"],\n      \"action\": \"SCMP_ACT_ALLOW\",\n      \"args\": [\n        {\n          \"index\": 0,\n          \"value\": 2114060288,\n          \"op\": \"SCMP_CMP_MASKED_EQ\"\n        }\n      ],\n      \"excludes\": {\n        \"caps\": [\"CAP_SYS_ADMIN\"],\n        \"arches\": [\"s390\", \"s390x\"]\n      }\n    },\n    {\n      \"names\": [\"clone\"],\n      \"action\": \"SCMP_ACT_ALLOW\",\n      \"args\": [\n        {\n          \"index\": 1,\n          \"value\": 2114060288,\n          \"op\": \"SCMP_CMP_MASKED_EQ\"\n        }\n      ],\n      \"comment\": \"s390 parameter ordering for clone is different\",\n      \"includes\": {\n        \"arches\": [\"s390\", \"s390x\"]\n      },\n      \"excludes\": {\n        \"caps\": [\"CAP_SYS_ADMIN\"]\n      }\n    },\n    {\n      \"names\": [\"clone3\"],\n      \"action\": \"SCMP_ACT_ERRNO\",\n      \"errnoRet\": 38,\n      \"excludes\": {\n        \"caps\": [\"CAP_SYS_ADMIN\"]\n      }\n    },\n    {\n      \"names\": [\"reboot\"],\n      \"action\": \"SCMP_ACT_ALLOW\",\n      \"includes\": {\n        \"caps\": [\"CAP_SYS_BOOT\"]\n      }\n    },\n    {\n      \"names\": [\"chroot\"],\n      \"action\": \"SCMP_ACT_ALLOW\",\n      \"includes\": {\n        \"caps\": [\"CAP_SYS_CHROOT\"]\n      }\n    },\n    {\n      \"names\": [\"delete_module\", \"init_module\", \"finit_module\"],\n      \"action\": \"SCMP_ACT_ALLOW\",\n      \"includes\": {\n        \"caps\": [\"CAP_SYS_MODULE\"]\n      }\n    },\n    {\n      \"names\": [\"acct\"],\n      \"action\": \"SCMP_ACT_ALLOW\",\n      \"includes\": {\n        \"caps\": [\"CAP_SYS_PACCT\"]\n      }\n    },\n    {\n      \"names\": [\"kcmp\", \"pidfd_getfd\", \"process_madvise\", \"process_vm_readv\", \"process_vm_writev\", \"ptrace\"],\n      \"action\": \"SCMP_ACT_ALLOW\",\n      \"includes\": {\n        \"caps\": [\"CAP_SYS_PTRACE\"]\n      }\n    },\n    {\n      \"names\": [\"iopl\", \"ioperm\"],\n      \"action\": \"SCMP_ACT_ALLOW\",\n      \"includes\": {\n        \"caps\": [\"CAP_SYS_RAWIO\"]\n      }\n    },\n    {\n      \"names\": [\"settimeofday\", \"stime\", \"clock_settime\", \"clock_settime64\"],\n      \"action\": \"SCMP_ACT_ALLOW\",\n      \"includes\": {\n        \"caps\": [\"CAP_SYS_TIME\"]\n      }\n    },\n    {\n      \"names\": [\"vhangup\"],\n      \"action\": \"SCMP_ACT_ALLOW\",\n      \"includes\": {\n        \"caps\": [\"CAP_SYS_TTY_CONFIG\"]\n      }\n    },\n    {\n      \"names\": [\"get_mempolicy\", \"mbind\", \"set_mempolicy\", \"set_mempolicy_home_node\"],\n      \"action\": \"SCMP_ACT_ALLOW\",\n      \"includes\": {\n        \"caps\": [\"CAP_SYS_NICE\"]\n      }\n    },\n    {\n      \"names\": [\"syslog\"],\n      \"action\": \"SCMP_ACT_ALLOW\",\n      \"includes\": {\n        \"caps\": [\"CAP_SYSLOG\"]\n      }\n    },\n    {\n      \"names\": [\"bpf\"],\n      \"action\": \"SCMP_ACT_ALLOW\",\n      \"includes\": {\n        \"caps\": [\"CAP_BPF\"]\n      }\n    },\n    {\n      \"names\": [\"perf_event_open\"],\n      \"action\": \"SCMP_ACT_ALLOW\",\n      \"includes\": {\n        \"caps\": [\"CAP_PERFMON\"]\n      }\n    },\n    {\n      \"names\": [\"clone\", \"unshare\"],\n      \"action\": \"SCMP_ACT_ALLOW\",\n      \"comment\": \"OpenBot: the Electron sandbox makes user, PID and network namespaces.\"\n    }\n  ]\n}\n";
 
   function $(id) { return document.getElementById(id); }
+  function each(sel, fn) { Array.prototype.forEach.call(document.querySelectorAll(sel), fn); }
 
   // ---------- leitura do formulário ----------
   function read() {
@@ -380,15 +488,7 @@
     var email = $("email").value.trim();
     var tagMode = document.querySelector('input[name="tagmode"]:checked').value;
     var tag = tagMode === "custom" ? $("tag").value.trim() : "latest";
-    return {
-      name: name,
-      email: email,
-      tz: $("tz").value,
-      shm: $("shm").value,
-      mem: $("mem").value,
-      tagMode: tagMode,
-      tag: tag
-    };
+    return { name: name, email: email, tz: $("tz").value, shm: $("shm").value, mem: $("mem").value, tagMode: tagMode, tag: tag };
   }
 
   function validate(s) {
@@ -398,16 +498,15 @@
     $("f-name").classList.toggle("invalid", s.name.length > 0 && !okName);
     $("f-email").classList.toggle("invalid", !okEmail);
     $("f-tag").classList.toggle("invalid", s.tagMode === "custom" && s.tag !== "" && !okTag);
-    return { all: okName && okEmail && okTag, name: okName, email: okEmail, tag: okTag };
+    return { name: okName, email: okEmail, tag: okTag };
   }
 
-  // ---------- geradores ----------
-  function buildCompose(s) {
-    var tag = s.tag || "latest";
+  // ---------- Dokploy ----------
+  function buildComposeDokploy(s) {
     var lines = [
       "services:",
       "  openbot:",
-      "    image: " + IMAGE + ":" + tag,
+      "    image: " + IMAGE + ":" + (s.tag || "latest"),
       "    restart: unless-stopped",
       "    security_opt:",
       "      # perfil seccomp oficial do OpenBot (File Mount do Dokploy)",
@@ -453,30 +552,76 @@
   function toBase64(str) {
     var bytes = new TextEncoder().encode(str);
     var bin = "";
-    var chunk = 0x8000;
-    for (var i = 0; i < bytes.length; i += chunk) {
-      bin += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
+    for (var i = 0; i < bytes.length; i += 0x8000) {
+      bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
     }
     return btoa(bin);
   }
 
+  // ---------- EasyPanel ----------
+  // Igual ao easypanel/docker-compose.yml do repositório.
+  var COMPOSE_EASYPANEL = [
+    "# OpenBot para EasyPanel (serviço Compose com fonte Git)",
+    "# Gerador: https://guilhermelaz.github.io/openbot-dokploy/?painel=easypanel",
+    "# Baseado no Docker oficial: https://github.com/nightly-labs/openbot/tree/main/docker",
+    "# Personalize pela aba Environment do EasyPanel (com \"Create .env file\" ligado).",
+    "",
+    "services:",
+    "  openbot:",
+    "    image: ghcr.io/nightly-labs/openbot:${OPENBOT_TAG:-latest}",
+    "    restart: unless-stopped",
+    "    security_opt:",
+    "      # perfil seccomp oficial do OpenBot (arquivo nesta mesma pasta)",
+    "      - seccomp=./seccomp.json",
+    "      - no-new-privileges:true",
+    "    shm_size: ${OPENBOT_SHM:-1g}",
+    "    mem_limit: ${OPENBOT_MEM_LIMIT:-0}",
+    "    stop_grace_period: 60s",
+    "    environment:",
+    "      - TZ=${OPENBOT_TZ:-America/Sao_Paulo}",
+    "    volumes:",
+    "      - openbot-data:/data",
+    "",
+    "volumes:",
+    "  openbot-data:",
+    ""
+  ].join("\n");
+
+  function buildEnv(s) {
+    return [
+      "OPENBOT_TAG=" + (s.tag || "latest"),
+      "OPENBOT_SHM=" + s.shm,
+      "OPENBOT_MEM_LIMIT=" + (s.mem || "0"),
+      "OPENBOT_TZ=" + s.tz
+    ].join("\n");
+  }
+
+  // ---------- comandos ----------
   function shQuote(v) { return '"' + v.replace(/["\\`$]/g, "") + '"'; }
 
   function buildCommands(s) {
     var login = "openbot login " + (s.email ? s.email + " " : "") + "--name " + shQuote(s.name || "OpenBot VPS");
     var find = "$(docker ps -qf \"label=com.docker.compose.service=openbot\" | head -n1)";
     var tag = s.tag || "latest";
+    var pull = "docker pull " + IMAGE + ":" + tag;
     return {
       login: login,
       status: "openbot status",
       ssh: "docker exec -it " + find + " " + login,
-      update: s.tagMode === "custom"
+      sshStatus: "docker exec -it " + find + " openbot status",
+      backup: "VOL=$(docker volume ls -q | grep 'openbot-data' | head -n1)\n" +
+              "docker run --rm -v \"$VOL\":/data -v \"$PWD\":/backup alpine \\\n" +
+              "  tar czf /backup/openbot-backup-$(date +%F).tar.gz -C /data .",
+      updateDokploy: s.tagMode === "custom"
         ? "# Tag fixa: troque a tag no compose do Dokploy\n# (aba General) e clique em Deploy."
-        : "docker pull " + IMAGE + ":" + tag + "\n# depois clique em Deploy no Dokploy"
+        : pull + "\n# depois clique em Deploy no Dokploy",
+      updateEasypanel: s.tagMode === "custom"
+        ? "# Tag fixa: troque OPENBOT_TAG na aba Environment\n# do EasyPanel e clique em Deploy."
+        : pull + "\n# depois clique em Deploy no EasyPanel"
     };
   }
 
-  function buildReadme(s, cmds) {
+  function buildReadmeDokploy(s, c) {
     return [
       "# OpenBot no Dokploy",
       "",
@@ -487,7 +632,7 @@
       "2. Aba Advanced → Import → cole o conteúdo de dokploy-import-base64.txt em \"Configuration (Base64)\" → Load → Import.",
       "3. Aba General → Deploy.",
       "4. Open Terminal → container openbot → rode:",
-      "   " + cmds.login,
+      "   " + c.login,
       "   (digite o código que chegar no e-mail)",
       "5. Confira com: openbot status",
       "6. App OpenBot (mesma conta) → selecione o servidor \"" + s.name + "\".",
@@ -500,18 +645,85 @@
       "- Advanced → Volumes → File Mount: File Path \"seccomp.json\" com o conteúdo de seccomp.json.",
       "",
       "## Login via SSH (alternativa)",
-      cmds.ssh,
+      c.ssh,
       "",
       "## Backup",
       "Agende o volume openbot-data em Volume Backups. Ele guarda logins dos providers, banco e chave de criptografia.",
       "",
       "## Atualizar (faça backup antes)",
-      cmds.update,
+      c.updateDokploy,
       "",
       "Guia oficial: https://openbot.run/guides/install-openbot-vps",
-      "Gerado por: guilhermelaz.com.br",
+      "Gerado por: https://guilhermelaz.github.io/openbot-dokploy/",
       ""
     ].join("\n");
+  }
+
+  function buildReadmeEasypanel(s, c, env) {
+    return [
+      "# OpenBot no EasyPanel",
+      "",
+      "Servidor: " + s.name,
+      "",
+      "## Instalar",
+      "1. EasyPanel → projeto → + Service → Compose (nome: openbot).",
+      "2. Aba Source → Git:",
+      "   Repository URL: " + EP.repo,
+      "   Branch: " + EP.branch,
+      "   Build Path: " + EP.path,
+      "   Docker Compose File: " + EP.file,
+      "   → Save",
+      "3. Aba Environment → cole as variáveis abaixo, ligue \"Create .env file\" e salve:",
+      "",
+      env.split("\n").map(function (l) { return "   " + l; }).join("\n"),
+      "",
+      "4. Deploy.",
+      "5. No terminal da VPS (SSH), rode:",
+      "   " + c.ssh,
+      "   (digite o código que chegar no e-mail)",
+      "6. Confira com:",
+      "   " + c.sshStatus,
+      "7. App OpenBot (mesma conta) → selecione o servidor \"" + s.name + "\".",
+      "8. Conecte os providers de novo, agora no servidor.",
+      "",
+      "Não adicione domínio: o OpenBot não publica porta web.",
+      "",
+      "## Backup (pare o serviço no EasyPanel antes)",
+      c.backup,
+      "",
+      "## Atualizar (faça backup antes)",
+      c.updateEasypanel,
+      "",
+      "Guia oficial: https://openbot.run/guides/install-openbot-vps",
+      "Gerado por: https://guilhermelaz.github.io/openbot-dokploy/?painel=easypanel",
+      ""
+    ].join("\n");
+  }
+
+  // ---------- painel ----------
+  function setPanel(p, opts) {
+    if (!PANELS[p]) p = "dokploy";
+    panel = p;
+    document.body.classList.toggle("p-dokploy", p === "dokploy");
+    document.body.classList.toggle("p-easypanel", p === "easypanel");
+    each(".seg-big button", function (b) { b.setAttribute("aria-checked", b.dataset.panel === p ? "true" : "false"); });
+    each(".panelName", function (el) { el.textContent = PANELS[p]; });
+    document.title = "Gerador de template OpenBot pro " + PANELS[p] + " · Guilherme Lazarotto";
+    // abre a primeira aba visível desse painel
+    selectTab(p === "dokploy" ? "b64" : "epsrc");
+    if (!(opts && opts.keepUrl)) {
+      try {
+        var url = new URL(window.location.href);
+        if (p === "easypanel") url.searchParams.set("painel", "easypanel"); else url.searchParams.delete("painel");
+        history.replaceState(null, "", url.toString());
+      } catch (e) {}
+    }
+    render();
+  }
+
+  function selectTab(name) {
+    each(".tab", function (x) { x.setAttribute("aria-selected", x.dataset.tab === name ? "true" : "false"); });
+    each(".panel", function (el) { el.classList.toggle("on", el.id === "p-" + name); });
   }
 
   // ---------- render ----------
@@ -520,72 +732,94 @@
   function render() {
     var s = read();
     var v = validate(s);
-    var compose = buildCompose(s);
-    var cmds = buildCommands(s);
+    var c = buildCommands(s);
+    var env = buildEnv(s);
 
-    $("outCompose").textContent = compose;
-    $("cLogin").textContent = cmds.login;
-    $("cStatus").textContent = cmds.status;
-    $("cSsh").textContent = cmds.ssh;
-    $("cUpdate").textContent = cmds.update;
-    $("updNote").innerHTML = s.tagMode === "custom"
-      ? "Com tag fixa, você controla quando atualizar. Faça backup do volume antes."
-      : "Com <code>latest</code>, o Dokploy não baixa a versão nova sozinho: puxe a imagem via SSH e clique em <b>Deploy</b>.";
-    $("sName").textContent = s.name ? "\u201C" + s.name + "\u201D" : "o seu servidor";
+    // comuns
+    $("cLogin").textContent = c.login;
+    $("cStatus").textContent = c.status;
+    $("cSsh").textContent = c.ssh;
+    $("cSshLogin").textContent = c.ssh;
+    $("cSshStatus").textContent = c.sshStatus;
+    $("cBackup").textContent = c.backup;
+    each(".sName", function (el) { el.textContent = s.name ? "\u201C" + s.name + "\u201D" : "o seu servidor"; });
 
-    var warn = $("b64warn");
-    var out = $("outB64");
+    // EasyPanel
+    $("epRepo").textContent = EP.repo;
+    $("epBranch").textContent = EP.branch;
+    $("epPath").textContent = EP.path;
+    $("epFile").textContent = EP.file;
+    $("outEnv").textContent = env;
+
+    if (panel === "easypanel") {
+      $("outCompose").textContent = COMPOSE_EASYPANEL;
+      $("cUpdate").textContent = c.updateEasypanel;
+      $("updNote").innerHTML = s.tagMode === "custom"
+        ? "Com tag fixa, você controla quando atualizar. Faça backup do volume antes."
+        : "Com <code>latest</code>, o EasyPanel pode não baixar a versão nova sozinho: puxe a imagem via SSH e clique em <b>Deploy</b>.";
+    } else {
+      $("outCompose").textContent = buildComposeDokploy(s);
+      $("cUpdate").textContent = c.updateDokploy;
+      $("updNote").innerHTML = s.tagMode === "custom"
+        ? "Com tag fixa, você controla quando atualizar. Faça backup do volume antes."
+        : "Com <code>latest</code>, o Dokploy não baixa a versão nova sozinho: puxe a imagem via SSH e clique em <b>Deploy</b>.";
+    }
+
+    // problemas (nome, e-mail, tag valem pros dois; seccomp só pro Dokploy)
     var problems = [];
     if (!v.name) problems.push("preencha o nome do servidor (6 a 32 caracteres)");
     if (!v.email) problems.push("corrija o e-mail");
     if (s.tagMode === "custom" && !v.tag) problems.push("informe uma tag válida");
-    if (!seccomp) problems.push("aguarde o seccomp oficial carregar");
 
-    if (problems.length) {
+    // Dokploy: Base64
+    var warn = $("b64warn");
+    var out = $("outB64");
+    var dProblems = problems.slice();
+    if (!seccomp) dProblems.push("aguarde o seccomp oficial carregar");
+    var compose = buildComposeDokploy(s);
+    var toml = seccomp ? buildToml(seccomp) : "Aguardando o seccomp oficial…";
+    $("outToml").textContent = toml;
+    var b64 = "";
+    if (dProblems.length) {
       out.value = "";
       $("b64meta").textContent = "";
-      $("outToml").textContent = seccomp ? buildToml(seccomp) : "Aguardando o seccomp oficial…";
       warn.style.display = "block";
-      warn.innerHTML = "Pra gerar o Base64: " + problems.join("; ") + ".";
-      $("dlZip").disabled = true;
-      last = null;
-      return;
+      warn.innerHTML = "Pra gerar o Base64: " + dProblems.join("; ") + ".";
+    } else {
+      b64 = toBase64(JSON.stringify({ compose: compose, config: toml }));
+      out.value = b64;
+      $("b64meta").textContent = (b64.length / 1024).toFixed(1) + " KB";
+      warn.style.display = "none";
     }
 
-    var toml = buildToml(seccomp);
-    var b64 = toBase64(JSON.stringify({ compose: compose, config: toml }));
-    $("outToml").textContent = toml;
-    out.value = b64;
-    $("b64meta").textContent = (b64.length / 1024).toFixed(1) + " KB";
-    warn.style.display = "none";
-    $("dlZip").disabled = typeof JSZip === "undefined";
-    last = { s: s, compose: compose, toml: toml, b64: b64, cmds: cmds };
+    var ready = panel === "dokploy" ? dProblems.length === 0 : problems.length === 0;
+    $("dlZip").disabled = !ready || typeof JSZip === "undefined";
+    $("dlZip").title = ready ? "" : "Pra baixar: " + (panel === "dokploy" ? dProblems : problems).join("; ");
+    last = ready ? { s: s, c: c, env: env, compose: compose, toml: toml, b64: b64 } : null;
   }
 
   // ---------- seccomp oficial ----------
-  function loadSeccomp() {
+  function useSeccomp(txt, fromGithub) {
+    seccomp = txt;
+    $("outSeccomp").textContent = txt;
+    $("secmeta").textContent = (txt.length / 1024).toFixed(1) + " KB · " + (fromGithub ? "versão atual do repositório" : "cópia oficial embutida (19/11/2026)");
     var box = $("seccompStatus");
+    box.className = "status ok";
+    box.lastElementChild.textContent = fromGithub
+      ? "Perfil seccomp oficial carregado do GitHub do OpenBot."
+      : "Perfil seccomp oficial pronto (cópia embutida de 19/11/2026).";
+    render();
+  }
+
+  function loadSeccomp() {
     fetch(SECCOMP_URL, { cache: "no-store" })
       .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.text(); })
       .then(function (txt) {
-        JSON.parse(txt); // garante que é JSON válido
+        JSON.parse(txt);
         if (txt.indexOf("'''") !== -1) throw new Error("conteúdo inesperado");
-        seccomp = txt;
-        $("outSeccomp").textContent = txt;
-        $("secmeta").textContent = (txt.length / 1024).toFixed(1) + " KB · versão atual do repositório";
-        box.className = "status ok";
-        box.lastElementChild.textContent = "Perfil seccomp oficial carregado do GitHub do OpenBot.";
-        render();
+        useSeccomp(txt, true);
       })
-      .catch(function () {
-        // sem acesso ao GitHub: usa a cópia embutida
-        seccomp = SECCOMP_EMBEDDED;
-        $("outSeccomp").textContent = seccomp;
-        $("secmeta").textContent = (seccomp.length / 1024).toFixed(1) + " KB · cópia oficial embutida (19/11/2026)";
-        box.className = "status ok";
-        box.lastElementChild.textContent = "Perfil seccomp oficial pronto (cópia embutida de 19/11/2026).";
-        render();
-      });
+      .catch(function () { useSeccomp(SECCOMP_EMBEDDED, false); });
   }
 
   // ---------- interações ----------
@@ -593,18 +827,17 @@
     $(id).addEventListener("input", render);
     $(id).addEventListener("change", render);
   });
-  Array.prototype.forEach.call(document.querySelectorAll('input[name="tagmode"]'), function (r) {
+  each('input[name="tagmode"]', function (r) {
     r.addEventListener("change", function () {
-      $("tag").style.display = r.value === "custom" && r.checked ? "block" : (document.querySelector('input[name="tagmode"]:checked').value === "custom" ? "block" : "none");
+      $("tag").style.display = document.querySelector('input[name="tagmode"]:checked').value === "custom" ? "block" : "none";
       render();
     });
   });
-
-  Array.prototype.forEach.call(document.querySelectorAll(".tab"), function (t) {
-    t.addEventListener("click", function () {
-      Array.prototype.forEach.call(document.querySelectorAll(".tab"), function (x) { x.setAttribute("aria-selected", x === t ? "true" : "false"); });
-      Array.prototype.forEach.call(document.querySelectorAll(".panel"), function (p) { p.classList.toggle("on", p.id === "p-" + t.dataset.tab); });
-    });
+  each(".seg-big button", function (b) {
+    b.addEventListener("click", function () { setPanel(b.dataset.panel); });
+  });
+  each(".tab", function (t) {
+    t.addEventListener("click", function () { selectTab(t.dataset.tab); });
   });
 
   var toastTimer;
@@ -615,7 +848,6 @@
     clearTimeout(toastTimer);
     toastTimer = setTimeout(function () { el.classList.remove("show"); }, 1600);
   }
-
   function copyText(text) {
     if (!text) { toast("Nada pra copiar ainda"); return; }
     if (navigator.clipboard && window.isSecureContext) {
@@ -629,8 +861,7 @@
     try { document.execCommand("copy"); toast("Copiado!"); } catch (e) { toast("Selecione e copie manualmente"); }
     document.body.removeChild(ta);
   }
-
-  Array.prototype.forEach.call(document.querySelectorAll("[data-copy]"), function (b) {
+  each("[data-copy]", function (b) {
     b.addEventListener("click", function () {
       var el = $(b.getAttribute("data-copy"));
       copyText(el.tagName === "TEXTAREA" ? el.value : el.textContent);
@@ -640,24 +871,41 @@
   $("dlZip").addEventListener("click", function () {
     if (!last || typeof JSZip === "undefined") return;
     var zip = new JSZip();
-    var folder = zip.folder("openbot-dokploy");
-    folder.file("docker-compose.yml", last.compose);
-    folder.file("seccomp.json", seccomp);
-    folder.file("template.toml", last.toml);
-    folder.file("dokploy-import-base64.txt", last.b64 + "\n");
-    folder.file("LEIA-ME.md", buildReadme(last.s, last.cmds));
+    var name, folder;
+    if (panel === "easypanel") {
+      name = "openbot-easypanel";
+      folder = zip.folder(name);
+      folder.file("docker-compose.yml", COMPOSE_EASYPANEL);
+      folder.file("seccomp.json", seccomp || SECCOMP_EMBEDDED);
+      folder.file(".env", last.env + "\n");
+      folder.file("LEIA-ME.md", buildReadmeEasypanel(last.s, last.c, last.env));
+    } else {
+      name = "openbot-dokploy";
+      folder = zip.folder(name);
+      folder.file("docker-compose.yml", last.compose);
+      folder.file("seccomp.json", seccomp);
+      folder.file("template.toml", last.toml);
+      folder.file("dokploy-import-base64.txt", last.b64 + "\n");
+      folder.file("LEIA-ME.md", buildReadmeDokploy(last.s, last.c));
+    }
     zip.generateAsync({ type: "blob" }).then(function (blob) {
       var a = document.createElement("a");
       a.href = URL.createObjectURL(blob);
-      a.download = "openbot-dokploy.zip";
+      a.download = name + ".zip";
       document.body.appendChild(a); a.click(); a.remove();
       setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
       toast("Download iniciado");
     });
   });
 
+  // painel inicial: ?painel=easypanel abre direto no EasyPanel; padrão é Dokploy
+  var initial = "dokploy";
+  try {
+    var q = new URLSearchParams(window.location.search).get("painel");
+    if (q && PANELS[q.toLowerCase()]) initial = q.toLowerCase();
+  } catch (e) {}
   window.addEventListener("load", function () { render(); });
-  render();
+  setPanel(initial, { keepUrl: true });
   loadSeccomp();
 })();
 </script>
